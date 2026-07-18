@@ -1,0 +1,25 @@
+# Build output - not needed, Docker builds fresh
+bin/
+obj/
+
+# Git history - not needed in image
+.git/
+
+# IDE-specific files
+.vs/
+.idea/
+.vscode/
+
+# Dev-only settings (secrets must NOT be in the image)
+appsettings.Development.json
+
+# OS artefacts
+.DS_Store
+Thumbs.db
+
+# Visual Studio user files
+*.user
+*.suo
+
+# Logs
+*.log

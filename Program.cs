@@ -90,8 +90,9 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    var config = scope.ServiceProvider.GetRequiredService<IConfiguration>();
     db.Database.Migrate();
-    await AdminSeeder.SeedAsync(db);
+    await AdminSeeder.SeedAsync(db, config);
 }
 
 // ── Middleware Pipeline ───────────────────────────────────────────────────────
