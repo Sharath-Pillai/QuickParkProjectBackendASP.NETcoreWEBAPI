@@ -53,11 +53,15 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("QuickParkCors", policy =>
     {
-        policy.WithOrigins(
-                "http://localhost:5173",
-                "http://localhost:3000",
-                "http://127.0.0.1:5173"
-              )
+        var frontendUrl = builder.Configuration["FrontendUrl"];
+        var allowedOrigins = new List<string> { "http://localhost:5173", "http://localhost:3000", "http://127.0.0.1:5173" };
+        
+        if (!string.IsNullOrEmpty(frontendUrl))
+        {
+            allowedOrigins.Add(frontendUrl);
+        }
+
+        policy.WithOrigins(allowedOrigins.ToArray())
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
@@ -77,7 +81,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi();
 
 // ── Listen on port 5000 (same as old Node backend) ────────────────────────────
-builder.WebHost.UseUrls("http://0.0.0.0:5000");
+var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
+builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 
 var app = builder.Build();
 
@@ -122,5 +127,5 @@ app.MapGet("/api/health", (AppDbContext db) =>
     });
 });
 
-Console.WriteLine("QuickPark .NET API starting on http://localhost:5000");
+Console.WriteLine($"QuickPark .NET API starting on http://0.0.0.0:{port}");
 app.Run();
