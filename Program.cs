@@ -11,6 +11,16 @@ var builder = WebApplication.CreateBuilder(args);
 string jwtSecret = (builder.Configuration["Jwt:Secret"] ?? "").PadRight(32, '_'); //The API is using HS256 (SecurityAlgorithms.HmacSha256) for its JWT signing algorithm. This requires a key that is at least 256 bits (32 bytes) long, which is why the previous short key (YOUR_JWT_SECRET_KEY_HERE which is 24 bytes) needed padding to prevent runtime exceptions.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
+// Fail fast with a helpful message if the connection string is missing or still a placeholder
+if (string.IsNullOrWhiteSpace(connectionString) || connectionString.StartsWith("PLACEHOLDER"))
+{
+    throw new InvalidOperationException(
+        "Database connection string is not configured. " +
+        "Set the 'ConnectionStrings__DefaultConnection' environment variable on Railway " +
+        "with a valid SQL Server connection string. " +
+        "Example: Server=<host>;Database=QuickPark;User Id=<user>;Password=<pass>;TrustServerCertificate=True;");
+}
+
 // ── EF Core + MSSQL ──────────────────────────────────────────────────────────
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(connectionString));
