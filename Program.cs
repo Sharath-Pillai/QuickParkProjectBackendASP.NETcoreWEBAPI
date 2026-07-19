@@ -1,3 +1,4 @@
+using System.Net.Security;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -23,14 +24,19 @@ if (string.IsNullOrWhiteSpace(connectionString) || connectionString.StartsWith("
 }
 
 // ── EF Core + PostgreSQL ─────────────────────────────────────────────────────
-// NpgsqlConnectionStringBuilder parses BOTH URL format (postgresql://...)
-// and key=value format, then we enforce SSL which Render PostgreSQL requires.
-var npgsqlConnStr = new NpgsqlConnectionStringBuilder(connectionString!);
-npgsqlConnStr.SslMode = SslMode.Require;
-// Note: TrustServerCertificate is obsolete in Npgsql 9 — SslMode.Require handles it
+// NpgsqlDataSourceBuilder gives full control over SSL.
+// UseSslClientAuthenticationOptionsCallback is the Npgsql 9+ API to bypass
+// certificate validation (needed for Render's managed PostgreSQL).
+var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString!);
+dataSourceBuilder.UseSslClientAuthenticationOptionsCallback(options =>
+{
+    options.RemoteCertificateValidationCallback = (_, _, _, _) => true;
+});
+var npgsqlDataSource = dataSourceBuilder.Build();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(npgsqlConnStr.ConnectionString));
+    options.UseNpgsql(npgsqlDataSource));
+
 
 // ── JWT Auth ──────────────────────────────────────────────────────────────────
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
