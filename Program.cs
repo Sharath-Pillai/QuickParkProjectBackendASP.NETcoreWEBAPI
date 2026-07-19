@@ -2,6 +2,7 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Npgsql;
 using QuickParkAPI.Data;
 using QuickParkAPI.Services;
 
@@ -22,16 +23,14 @@ if (string.IsNullOrWhiteSpace(connectionString) || connectionString.StartsWith("
 }
 
 // ── EF Core + PostgreSQL ─────────────────────────────────────────────────────
-// Render PostgreSQL requires SSL — append SSL params if not already specified
-if (!connectionString!.Contains("SSL Mode", StringComparison.OrdinalIgnoreCase) &&
-    !connectionString.Contains("sslmode", StringComparison.OrdinalIgnoreCase))
-{
-    connectionString = connectionString.TrimEnd(';') +
-        ";SSL Mode=Require;Trust Server Certificate=true";
-}
+// NpgsqlConnectionStringBuilder parses BOTH URL format (postgresql://...)
+// and key=value format, then we enforce SSL which Render PostgreSQL requires.
+var npgsqlConnStr = new NpgsqlConnectionStringBuilder(connectionString!);
+npgsqlConnStr.SslMode = SslMode.Require;
+// Note: TrustServerCertificate is obsolete in Npgsql 9 — SslMode.Require handles it
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(connectionString));
+    options.UseNpgsql(npgsqlConnStr.ConnectionString));
 
 // ── JWT Auth ──────────────────────────────────────────────────────────────────
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
