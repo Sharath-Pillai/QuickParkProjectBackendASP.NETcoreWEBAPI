@@ -16,14 +16,14 @@ if (string.IsNullOrWhiteSpace(connectionString) || connectionString.StartsWith("
 {
     throw new InvalidOperationException(
         "Database connection string is not configured. " +
-        "Set the 'ConnectionStrings__DefaultConnection' environment variable on Railway " +
-        "with a valid SQL Server connection string. " +
-        "Example: Server=<host>;Database=QuickPark;User Id=<user>;Password=<pass>;TrustServerCertificate=True;");
+        "Set the 'ConnectionStrings__DefaultConnection' environment variable on Render " +
+        "with a valid PostgreSQL connection string. " +
+        "Example: Host=<host>;Port=5432;Database=QuickPark;Username=<user>;Password=<pass>;");
 }
 
-// ── EF Core + MSSQL ──────────────────────────────────────────────────────────
+// ── EF Core + PostgreSQL ─────────────────────────────────────────────────────
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(connectionString));
+    options.UseNpgsql(connectionString));
 
 // ── JWT Auth ──────────────────────────────────────────────────────────────────
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

@@ -12,7 +12,7 @@ namespace QuickParkAPI.Data
             var adminExists = await db.Users.AnyAsync(u => u.Role == "admin");
             if (!adminExists)
             {
-                // Read admin password from configuration (set via Railway env var: AdminPassword)
+                // Read admin password from configuration (set via Render env var: AdminPassword)
                 var password = config["AdminPassword"];
                 if (string.IsNullOrWhiteSpace(password) || password == "PLACEHOLDER_SET_VIA_ENV")
                 {

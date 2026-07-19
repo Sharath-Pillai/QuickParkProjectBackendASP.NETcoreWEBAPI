@@ -1,16 +1,16 @@
-# Build output - not needed, Docker builds fresh
+# Build output - Docker builds fresh
 bin/
 obj/
 
-# Git history - not needed in image
+# Git history
 .git/
 
-# IDE-specific files
+# IDE files
 .vs/
 .idea/
 .vscode/
 
-# Dev-only settings (secrets must NOT be in the image)
+# Dev-only settings (never bake secrets into image)
 appsettings.Development.json
 
 # OS artefacts
