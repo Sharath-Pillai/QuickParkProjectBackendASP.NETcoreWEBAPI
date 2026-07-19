@@ -139,6 +139,18 @@ using (var scope = app.Services.CreateScope())
 if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 
+// Global exception handler — always return JSON, never empty body
+// In Production, ASP.NET Core returns empty 500 by default; this fixes that.
+app.UseExceptionHandler(errApp =>
+{
+    errApp.Run(async context =>
+    {
+        context.Response.StatusCode = 500;
+        context.Response.ContentType = "application/json";
+        await context.Response.WriteAsync("{\"error\":\"An internal server error occurred. Please try again.\"}");
+    });
+});
+
 // Security headers
 app.Use(async (context, next) =>
 {

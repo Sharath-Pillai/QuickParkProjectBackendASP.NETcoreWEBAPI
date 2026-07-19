@@ -25,7 +25,8 @@ namespace QuickParkAPI.DTOs
     {
         public int Id { get; set; }
         // _id alias for MongoDB-style frontend compatibility
-        public string _id => Id.ToString();
+        [System.Text.Json.Serialization.JsonPropertyName("_id")]
+        public string MongoId => Id.ToString();
         public string Name { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public string Role { get; set; } = string.Empty;
