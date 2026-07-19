@@ -22,6 +22,14 @@ if (string.IsNullOrWhiteSpace(connectionString) || connectionString.StartsWith("
 }
 
 // ── EF Core + PostgreSQL ─────────────────────────────────────────────────────
+// Render PostgreSQL requires SSL — append SSL params if not already specified
+if (!connectionString!.Contains("SSL Mode", StringComparison.OrdinalIgnoreCase) &&
+    !connectionString.Contains("sslmode", StringComparison.OrdinalIgnoreCase))
+{
+    connectionString = connectionString.TrimEnd(';') +
+        ";SSL Mode=Require;Trust Server Certificate=true";
+}
+
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString));
 
