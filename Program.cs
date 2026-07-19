@@ -88,7 +88,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("QuickParkCors", policy =>
     {
-        var frontendUrl = builder.Configuration["FrontendUrl"];
+        var frontendUrl = builder.Configuration["FrontendUrl"]?.TrimEnd('/');
         var allowedOrigins = new List<string>
         {
             "http://localhost:5173",
@@ -163,7 +163,7 @@ app.MapGet("/api/health", (AppDbContext db) =>
         status    = "OK",
         timestamp = DateTime.UtcNow.ToString("o"),
         db        = canConnect ? "connected" : "disconnected"
-    });
+     });
 });
 
 Console.WriteLine($"QuickPark .NET API starting on http://0.0.0.0:{port}");
