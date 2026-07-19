@@ -24,10 +24,25 @@ if (string.IsNullOrWhiteSpace(connectionString) || connectionString.StartsWith("
 }
 
 // ── EF Core + PostgreSQL ─────────────────────────────────────────────────────
-// NpgsqlDataSourceBuilder gives full control over SSL.
+// Npgsql 9 does NOT accept postgresql:// URL format — convert to key=value.
+// Render provides the Internal Database URL as postgresql://... so we convert it.
+if (connectionString!.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase) ||
+    connectionString.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase))
+{
+    var uri = new Uri(connectionString);
+    var userInfo = uri.UserInfo.Split(':', 2);
+    var username = Uri.UnescapeDataString(userInfo[0]);
+    var password  = userInfo.Length > 1 ? Uri.UnescapeDataString(userInfo[1]) : string.Empty;
+    var host      = uri.Host;
+    var dbPort    = uri.Port > 0 ? uri.Port : 5432;
+    var database  = uri.AbsolutePath.TrimStart('/');
+    connectionString =
+        $"Host={host};Port={dbPort};Database={database};Username={username};Password={password}";
+}
+
+var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
 // UseSslClientAuthenticationOptionsCallback is the Npgsql 9+ API to bypass
 // certificate validation (needed for Render's managed PostgreSQL).
-var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString!);
 dataSourceBuilder.UseSslClientAuthenticationOptionsCallback(options =>
 {
     options.RemoteCertificateValidationCallback = (_, _, _, _) => true;
@@ -36,6 +51,7 @@ var npgsqlDataSource = dataSourceBuilder.Build();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(npgsqlDataSource));
+
 
 
 // ── JWT Auth ──────────────────────────────────────────────────────────────────
