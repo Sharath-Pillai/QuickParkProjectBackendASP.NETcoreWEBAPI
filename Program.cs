@@ -7,6 +7,35 @@ using Npgsql;
 using QuickParkAPI.Data;
 using QuickParkAPI.Services;
 
+var backendEnvFile = Path.Combine(Directory.GetCurrentDirectory(), ".env");
+if (File.Exists(backendEnvFile))
+{
+    foreach (var rawLine in File.ReadLines(backendEnvFile))
+    {
+        var line = rawLine.Trim();
+        if (line.Length == 0 || line.StartsWith('#'))
+            continue;
+
+        var separator = line.IndexOf('=');
+        if (separator <= 0)
+            throw new InvalidOperationException("Invalid entry in backend .env file. Use KEY=VALUE format.");
+
+        var key = line[..separator].Trim();
+        if (key.Length == 0 || key.Any(character =>
+                !char.IsAsciiLetterOrDigit(character) && character != '_'))
+            throw new InvalidOperationException("Invalid variable name in backend .env file.");
+
+        var value = line[(separator + 1)..].Trim();
+        if (value.Length >= 2 &&
+            ((value[0] == '"' && value[^1] == '"') ||
+             (value[0] == '\'' && value[^1] == '\'')))
+            value = value[1..^1];
+
+        if (Environment.GetEnvironmentVariable(key) is null)
+            Environment.SetEnvironmentVariable(key, value);
+    }
+}
+
 var builder = WebApplication.CreateBuilder(args);
 
 // ── Configuration ─────────────────────────────────────────────────────────────
@@ -108,6 +137,11 @@ builder.Services.AddCors(options =>
 
 // ── Services ──────────────────────────────────────────────────────────────────
 builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.AddHttpClient(nameof(QuickChatAgent), client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(60);
+});
+builder.Services.AddScoped<QuickChatAgent>();
 builder.Services.AddControllers()
     .AddJsonOptions(opts =>
     {

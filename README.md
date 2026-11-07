@@ -29,3 +29,11 @@ To get the backend running on your local machine:
    ```
 
 The API will spin up and start listening for requests from the frontend.
+
+## Quick customer-support chat
+
+The authenticated customer dashboard includes Quick, a read-only support assistant. It can look up the signed-in customer's recent bookings and search approved parking spaces with availability. It cannot change bookings or process payments.
+
+For local development, copy `backend/.env.example` to `backend/.env` and replace the placeholder with your Gemini API key. The backend loads that file when it starts; environment variables already set in the process take precedence. Alternatively, set `Gemini__ApiKey` or `GEMINI_API_KEY` in the backend environment. The backend `.gitignore` excludes `.env`, so the real key should not be committed. Do not put the key in frontend code or `frontend/.env`. Quick uses the `gemini-3.5-flash-lite` Gemini model through the C# API and returns a structured message, suggested follow-ups, and in-app parking/booking links.
+
+The agent orchestration is implemented in C# because the application is .NET. LangChain and LangGraph do not provide official C# libraries; use a Python agent service if those libraries are mandatory.
